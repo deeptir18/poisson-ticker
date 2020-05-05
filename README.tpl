@@ -1,23 +1,10 @@
-# poisson-ticker
+# {{crate}}
 
 [![Crates.io](https://img.shields.io/crates/v/ubuntu-ami.svg)](https://crates.io/crates/ubuntu-ami)
 [![Documentation](https://docs.rs/ubuntu-ami/badge.svg)](https://docs.rs/ubuntu-ami/)
 ![Build Status](https://github.com/akshayknarayan/ubuntu-ami/workflows/Rust/badge.svg)
 
-Exponentially distributed timer for your Poisson-arrivals needs.
-
-## Example
-```rust
-#[tokio::main]
-async fn main() {
-    let mut t = poisson_ticker::Ticker::new(std::time::Duration::from_millis(10));
-    let now = std::time::Instant::now();
-    for _ in 0usize..5 {
-        (&mut t).await;
-    }
-    println!("elapsed: {:?}", now.elapsed());
-}
-```
+{{readme}}
 
 ## License
 
