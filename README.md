@@ -1,8 +1,8 @@
 # poisson-ticker
 
-[![Crates.io](https://img.shields.io/crates/v/ubuntu-ami.svg)](https://crates.io/crates/ubuntu-ami)
-[![Documentation](https://docs.rs/ubuntu-ami/badge.svg)](https://docs.rs/ubuntu-ami/)
-![Build Status](https://github.com/akshayknarayan/ubuntu-ami/workflows/Rust/badge.svg)
+[![Crates.io](https://img.shields.io/crates/v/poisson-ticker.svg)](https://crates.io/crates/poisson-ticker)
+[![Documentation](https://docs.rs/poisson-ticker)](https://docs.rs/poisson-ticker)
+![Build Status](https://github.com/akshayknarayan/poisson-ticker/workflows/Rust/badge.svg)
 
 Exponentially distributed timer for your Poisson-arrivals needs.
 
