@@ -4,6 +4,8 @@
 [![Documentation](https://docs.rs/poisson-ticker)](https://docs.rs/poisson-ticker)
 ![Build Status](https://github.com/akshayknarayan/poisson-ticker/workflows/Rust/badge.svg)
 
+* Warning: Don't use this. It doesn't work yet. *
+
 Exponentially distributed timer for your Poisson-arrivals needs.
 
 ## Example
