@@ -25,12 +25,13 @@ pub struct Ticker {
     should_restart: bool,
     curr_timer: Timer,
     distr: Exp<f64>,
-    mean_ns: u128,
+    mean_ns: u64,
+    id: Option<usize>,
 }
 
 impl Ticker {
     pub fn new(d: Duration) -> Self {
-        let mean_ns = d.as_nanos();
+        let mean_ns = d.as_nanos() as _;
         let lambda = 1. / d.as_nanos() as f64;
         let r = Exp::new(lambda).expect("Make exponential distr");
         Self {
@@ -38,6 +39,20 @@ impl Ticker {
             curr_timer: Timer::new(d),
             distr: r,
             mean_ns,
+            id: None,
+        }
+    }
+
+    pub fn new_with_log_id(d: Duration, id: usize) -> Self {
+        let mean_ns = d.as_nanos() as _;
+        let lambda = 1. / d.as_nanos() as f64;
+        let r = Exp::new(lambda).expect("Make exponential distr");
+        Self {
+            should_restart: true,
+            curr_timer: Timer::new(d),
+            distr: r,
+            mean_ns,
+            id: Some(id),
         }
     }
 }
@@ -50,13 +65,26 @@ impl Future for Ticker {
         let t = &mut this.curr_timer;
         if this.should_restart {
             let mut rng = rand::thread_rng();
-            let next_interarrival_ns = this.distr.sample(&mut rng);
-            if next_interarrival_ns as u128 > this.mean_ns * 10 {
+            let next_interarrival_ns = this.distr.sample(&mut rng) as u64;
+            if next_interarrival_ns > this.mean_ns * 10 || next_interarrival_ns == 0 {
                 tracing::warn!(
+                    id = ?this.id,
                     sampled_wait_ns = ?next_interarrival_ns,
                     mean_ns = ?this.mean_ns,
-                    "long wait"
+                    "suspicious wait"
                 );
+            }
+
+            if next_interarrival_ns < 100 {
+                tracing::debug!(
+                    id = ?this.id,
+                    sampled_wait_ns = ?next_interarrival_ns,
+                    mean_ns = ?this.mean_ns,
+                    "wait too short, return immediately"
+                );
+
+                this.should_restart = true;
+                return Poll::Ready(());
             }
 
             t.restart(
@@ -66,6 +94,12 @@ impl Future for Ticker {
 
             this.should_restart = false;
         }
+
+        tracing::trace!(
+            id = ?this.id,
+            mean_ns = ?this.mean_ns,
+            "polling pacing timer"
+        );
 
         let tp = Pin::new(t);
         match tp.poll(cx) {
