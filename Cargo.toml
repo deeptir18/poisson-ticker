@@ -23,6 +23,7 @@ futures-util = { version = "0.3", default-features = false }
 async-timer = { version = "0.7", features = ["stream", "tokio_on"] }
 rand = "0.7"
 rand_distr = "0.2"
+tracing = "0.1"
 
 [dev-dependencies]
 tokio = {version = "0.2.11", features = ["macros"]}
