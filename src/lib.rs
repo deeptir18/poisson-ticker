@@ -125,7 +125,7 @@ impl SpinTimer {
 /// ```rust
 /// # #[tokio::main]
 /// # async fn main() {
-/// let mut t = poisson_ticker::Ticker::new(std::time::Duration::from_millis(10));
+/// let mut t = poisson_ticker::TimerTicker::new(std::time::Duration::from_millis(10));
 /// let now = std::time::Instant::now();
 /// for _ in 0usize..5 {
 ///     (&mut t).await;
@@ -133,7 +133,7 @@ impl SpinTimer {
 /// println!("elapsed: {:?}", now.elapsed());
 /// # }
 /// ```
-pub struct Ticker {
+pub struct TimerTicker {
     should_restart: bool,
     curr_timer: Timer,
     distr: Exp<f64>,
@@ -141,7 +141,7 @@ pub struct Ticker {
     id: Option<usize>,
 }
 
-impl Ticker {
+impl TimerTicker {
     pub fn new(d: Duration) -> Self {
         let mean_ns = d.as_nanos() as _;
         let lambda = 1. / d.as_nanos() as f64;
@@ -169,7 +169,7 @@ impl Ticker {
     }
 }
 
-impl Future for Ticker {
+impl Future for TimerTicker {
     type Output = ();
 
     fn poll(mut self: Pin<&mut Self>, cx: &mut Context) -> Poll<Self::Output> {
@@ -224,7 +224,7 @@ impl Future for Ticker {
     }
 }
 
-impl Stream for Ticker {
+impl Stream for TimerTicker {
     type Item = ();
 
     fn poll_next(self: Pin<&mut Self>, cx: &mut Context) -> Poll<Option<Self::Item>> {
