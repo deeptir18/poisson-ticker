@@ -112,7 +112,7 @@ impl SpinTimer {
 
             let elapsed = start.elapsed();
             if elapsed.as_nanos() > next_interarrival_ns as u128 * 10 {
-                tracing::warn!(
+                tracing::trace!(
                     ?id,
                     ?elapsed,
                     sampled_wait_ns = ?next_interarrival_ns,
