@@ -88,17 +88,18 @@ impl SpinTimer {
 
     fn wait(&mut self) -> Pin<Box<dyn Future<Output = ()> + 'static>> {
         let mut rng = rand::thread_rng();
-        let mut next_interarrival_ns = self.distr.sample(&mut rng) as u64;
-
+        let next_interarrival_ns = self.distr.sample(&mut rng) as u64;
         if next_interarrival_ns < 100 {
-            tracing::debug!(
+            tracing::trace!(
                 id = ?self.id,
                 sampled_wait_ns = ?next_interarrival_ns,
                 mean_ns = ?self.mean_ns,
                 "wait too short"
             );
 
-            next_interarrival_ns = 100;
+            // have a min wait or return immediately?
+            //next_interarrival_ns = 100;
+            return Box::pin(futures_util::future::ready(()));
         }
 
         let next_dur = Duration::from_nanos(next_interarrival_ns);
@@ -192,7 +193,7 @@ impl Future for TimerTicker {
             }
 
             if next_interarrival_ns < 100 {
-                tracing::debug!(
+                tracing::trace!(
                     id = ?this.id,
                     sampled_wait_ns = ?next_interarrival_ns,
                     mean_ns = ?this.mean_ns,
