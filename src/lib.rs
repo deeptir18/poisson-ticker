@@ -89,14 +89,6 @@ impl SpinTimer {
     fn wait(&mut self) -> Pin<Box<dyn Future<Output = ()> + 'static>> {
         let mut rng = rand::thread_rng();
         let mut next_interarrival_ns = self.distr.sample(&mut rng) as u64;
-        if next_interarrival_ns > self.mean_ns * 10 {
-            tracing::warn!(
-                id = ?self.id,
-                sampled_wait_ns = ?next_interarrival_ns,
-                mean_ns = ?self.mean_ns,
-                "suspicious wait"
-            );
-        }
 
         if next_interarrival_ns < 100 {
             tracing::debug!(
@@ -110,10 +102,22 @@ impl SpinTimer {
         }
 
         let next_dur = Duration::from_nanos(next_interarrival_ns);
-        let next_time = Instant::now() + next_dur;
+        let start = Instant::now();
+        let next_time = start + next_dur;
+        let id = self.id;
         Box::pin(async move {
             while Instant::now() < next_time {
                 tokio::task::yield_now().await;
+            }
+
+            let elapsed = start.elapsed();
+            if elapsed.as_nanos() > next_interarrival_ns as u128 * 10 {
+                tracing::warn!(
+                    ?id,
+                    ?elapsed,
+                    sampled_wait_ns = ?next_interarrival_ns,
+                    "suspicious wait"
+                );
             }
         })
     }
