@@ -23,7 +23,10 @@ use std::time::Instant;
 /// println!("elapsed: {:?}", now.elapsed());
 /// # }
 /// ```
-pub struct SpinTicker(SpinTimer, Option<Pin<Box<dyn Future<Output = ()>>>>);
+pub struct SpinTicker(
+    SpinTimer,
+    Option<Pin<Box<dyn Future<Output = ()> + Send + 'static>>>,
+);
 
 impl Future for SpinTicker {
     type Output = ();
@@ -86,7 +89,7 @@ impl SpinTimer {
         }
     }
 
-    fn wait(&mut self) -> Pin<Box<dyn Future<Output = ()> + 'static>> {
+    fn wait(&mut self) -> Pin<Box<dyn Future<Output = ()> + Send + 'static>> {
         let mut rng = rand::thread_rng();
         let next_interarrival_ns = self.distr.sample(&mut rng) as u64;
         if next_interarrival_ns < 100 {
