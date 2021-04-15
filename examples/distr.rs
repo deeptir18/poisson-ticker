@@ -33,14 +33,6 @@ async fn main() -> Result<(), StdError> {
         for o in durs {
             write!(&mut f, "spin {} {}\n", d.as_micros(), o.as_micros())?;
         }
-
-        let durs = do_ticks(poisson_ticker::TimerTicker::new(d)).await;
-        let sum: Duration = durs.iter().sum();
-        let mean: Duration = sum / durs.len() as u32;
-        println!("timer mean: {:?} vs {:?}", mean, d);
-        for o in durs {
-            write!(&mut f, "timer {} {}\n", d.as_micros(), o.as_micros())?;
-        }
     }
 
     Ok(())

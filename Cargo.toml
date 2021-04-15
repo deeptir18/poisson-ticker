@@ -20,11 +20,10 @@ maintenance = { status = "passively-maintained" }
 
 [dependencies]
 futures-util = { version = "0.3", default-features = false }
-async-timer = { version = "0.7", features = ["stream", "tokio_on"] }
 rand = "0.7"
 rand_distr = "0.2"
 tracing = "0.1"
-tokio = {version = "0.2", features = ["rt-core"]}
+tokio = {version = "1", features = ["rt"]}
 
 [dev-dependencies]
-tokio = {version = "0.2", features = ["macros"]}
+tokio = {version = "1", features = ["rt-multi-thread", "macros"]}
