@@ -37,28 +37,30 @@ use tracing::trace;
 /// ```
 pub struct SpinTicker<T>(
     T,
-    Option<Pin<Box<dyn Future<Output = bool> + Send + 'static>>>,
+    Option<Pin<Box<dyn Future<Output = ()> + Send + 'static>>>,
 );
 
 impl<T: Timer + Unpin> Future for SpinTicker<T> {
-    type Output = bool;
+    type Output = Option<()>;
 
     fn poll(mut self: Pin<&mut Self>, cx: &mut Context) -> Poll<Self::Output> {
+        // if the timer is done, return None
+        if self.0.done() {
+            return Poll::Ready(None);
+        }
         if let None = self.1 {
             self.1 = Some(Box::pin(self.0.wait()));
         }
-
         futures_util::ready!(self.1.as_mut().unwrap().as_mut().poll(cx));
         self.1 = None;
-        Poll::Ready(self.0.done())
+        Poll::Ready(Some(()))
     }
 }
 
 impl<T: Timer + Unpin> Stream for SpinTicker<T> {
-    type Item = bool;
-
-    fn poll_next(self: Pin<&mut Self>, cx: &mut Context) -> Poll<Option<Self::Item>> {
-        self.poll(cx).map(Some)
+    type Item = ();
+    fn poll_next(self: Pin<&mut Self>, cx: &mut Context) -> Poll<Option<()>> {
+        self.poll(cx)
     }
 }
 
@@ -77,7 +79,7 @@ impl SpinTicker<()> {
 }
 
 pub trait Timer {
-    fn wait(&mut self) -> Pin<Box<dyn Future<Output = bool> + Send + 'static>>;
+    fn wait(&mut self) -> Pin<Box<dyn Future<Output = ()> + Send + 'static>>;
     fn done(&self) -> bool;
 }
 
@@ -117,31 +119,27 @@ impl Timer for SpinTimer {
         cur_idx as usize > self.schedule.len() || self.start_time.elapsed() >= self.end_time
     }
 
-    fn wait(&mut self) -> Pin<Box<dyn Future<Output = bool> + Send + 'static>> {
+    fn wait(&mut self) -> Pin<Box<dyn Future<Output = ()> + Send + 'static>> {
         let start = Instant::now();
         if self.done() {
-            return Box::pin(futures_util::future::ready(true));
+            return Box::pin(futures_util::future::ready(()));
         }
 
         let cur_idx = self.cur_idx.load(Ordering::Acquire);
         let next_interarrival_ns = self.schedule.get(cur_idx as _).as_nanos() as u64;
-        let end_array =
-            self.cur_idx.fetch_add(1, Ordering::Release) as usize >= self.schedule.len();
         if self.deficit_ns.load(Ordering::Acquire) > next_interarrival_ns {
             // load doesn't matter, since we don't care about the read
             let deficit = self
                 .deficit_ns
                 .fetch_sub(next_interarrival_ns, Ordering::Release);
             trace!(?deficit, "returning immediately from deficit");
-            return Box::pin(futures_util::future::ready(self.done()));
+            return Box::pin(futures_util::future::ready(()));
         }
 
         let next_dur = Duration::from_nanos(next_interarrival_ns);
         let next_time = start + next_dur;
         let id = self.id;
         let deficit_ns = Arc::clone(&self.deficit_ns);
-        let start_time = self.start_time;
-        let end_time = self.end_time;
         Box::pin(async move {
             while Instant::now() < next_time {
                 tokio::task::yield_now().await;
@@ -158,8 +156,7 @@ impl Timer for SpinTimer {
                 sampled_wait_ns = ?next_interarrival_ns,
                 "waited"
             );
-            let done = end_array || start_time.elapsed() >= end_time;
-            return done;
+            return ();
         })
     }
 }
