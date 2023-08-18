@@ -4,9 +4,9 @@ use rand_distr::{Distribution, Exp};
 use std::time::Duration;
 
 #[inline]
-pub fn rate_pps_to_interarrival_nanos(rate: u64) -> f64 {
-    tracing::debug!("Nanos intersend: {:?}", 1_000_000_000.0 / rate as f64);
-    1_000_000_000.0 / rate as f64
+pub fn rate_pps_to_interarrival_nanos(rate: f64) -> f64 {
+    tracing::debug!("Nanos intersend: {:?}", 1_000_000_000.0 / rate);
+    1_000_000_000.0 / rate
 }
 
 #[inline]
@@ -40,7 +40,7 @@ impl std::str::FromStr for DistributionType {
 }
 
 impl PacketDistribution {
-    fn new(typ: DistributionType, rate_pps: u64) -> Result<Self> {
+    fn new(typ: DistributionType, rate_pps: f64) -> Result<Self> {
         let interarrival_nanos = rate_pps_to_interarrival_nanos(rate_pps);
         match typ {
             DistributionType::Uniform => Ok(PacketDistribution::Uniform(interarrival_nanos as u64)),
@@ -78,7 +78,7 @@ pub struct RequestSchedule {
 }
 
 impl RequestSchedule {
-    pub fn new(num_requests: usize, rate_pps: u64, dist_type: DistributionType) -> Result<Self> {
+    pub fn new(num_requests: usize, rate_pps: f64, dist_type: DistributionType) -> Result<Self> {
         tracing::debug!("Initializing packet schedule for {} requests", num_requests);
         let distribution = PacketDistribution::new(dist_type, rate_pps)
             .wrap_err("Failed to initialize distribution")?;
