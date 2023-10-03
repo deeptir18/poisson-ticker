@@ -1,4 +1,5 @@
 //! Exponentially distributed timer for your Poisson-arrivals needs.
+pub mod histogram;
 pub mod requests;
 use core::task::{Context, Poll};
 use futures_util::stream::Stream;
