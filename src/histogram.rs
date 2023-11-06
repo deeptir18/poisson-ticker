@@ -133,17 +133,17 @@ impl ManualHistogram {
 
         tracing::info!(
             msg,
-            p5_ms = self.value_at_quantile(0.05)?,
-            p25_ms = self.value_at_quantile(0.25)?,
-            p50_ms = self.value_at_quantile(0.5)?,
-            p75_ms = self.value_at_quantile(0.75)?,
-            p95_ms = self.value_at_quantile(0.95)?,
-            p99_ms = self.value_at_quantile(0.99)?,
-            p999_ms = self.value_at_quantile(0.999)?,
+            p5_ms = self.value_at_quantile(0.05)? / 1_000_000 as u64,
+            p25_ms = self.value_at_quantile(0.25)? / 1_000_000 as u64,
+            p50_ms = self.value_at_quantile(0.5)? / 1_000_000 as u64,
+            p75_ms = self.value_at_quantile(0.75)? / 1_000_000 as u64,
+            p95_ms = self.value_at_quantile(0.95)? / 1_000_000 as u64,
+            p99_ms = self.value_at_quantile(0.99)? / 1_000_000 as u64,
+            p999_ms = self.value_at_quantile(0.999)? / 1_000_000 as u64,
             requests_received = self.current_count,
-            min_ms = self.min()?,
-            max_ms = self.max()?,
-            avg_ms = ?self.mean()?,
+            min_ms = self.min()? / 1_000_000 as u64,
+            max_ms = self.max()? / 1_000_000 as u64,
+            avg_ms = ?self.mean()? / 1_000_000.0f64
         );
         Ok(())
     }
