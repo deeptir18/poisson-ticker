@@ -1,6 +1,7 @@
 use color_eyre::eyre::{bail, ensure, Result};
 use std::fs::File;
 use std::io::Write;
+
 #[derive(Debug, PartialEq, Eq, Clone, Default)]
 pub struct ManualHistogram {
     current_count: usize,
@@ -17,6 +18,10 @@ impl ManualHistogram {
             sorted_latencies: Vec::default(),
             is_sorted: false,
         }
+    }
+
+    pub fn latencies_vec(&self) -> &[u64] {
+        &self.latencies[0..self.current_count]
     }
     pub fn new(num_values: usize) -> Self {
         ManualHistogram {
