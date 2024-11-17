@@ -82,9 +82,15 @@ impl SummaryStats {
             (rate_seconds * (exp_time_seconds - cooldown_time_seconds) as f64).floor() as usize;
 
         // if cooldown is 0, possible that end_id is greater than length of map
-        if end_id > latency_map.len() {
-            end_id = latency_map.len();
+        if end_id > (latency_map.len() - 1) {
+            end_id = latency_map.len() - 1;
         }
+        tracing::info!(
+            "Start ID: {}, End ID: {}, map len: {}",
+            start_id,
+            end_id,
+            latency_map.len()
+        );
 
         // get histogram, total sent, total recv, sent time, receive time from latency map
         let (histogram, total_sent, total_recv, send_time, recv_time) =
