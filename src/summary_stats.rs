@@ -50,6 +50,18 @@ impl SummaryHistogram {
             self.count += 1;
         }
     }
+
+    pub fn value_at_quantile(&self, quantile: f64) -> Result<u64> {
+        let mut count = 0;
+        let total = self.count as f64;
+        for (lat, lat_count) in self.map.iter() {
+            count += lat_count;
+            if count as f64 >= total * quantile {
+                return Ok(*lat);
+            }
+        }
+        bail!("Quantile not found: {:?}", quantile);
+    }
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
